@@ -10,12 +10,22 @@ variable "tenant_acc_id" {
 
 variable "vpc_req_name" {
   description = "Name of the requester's VPC"
-  default     = ""
+  default     = null
+}
+
+variable "vpc_req_id" {
+  description = "ID of the requester's VPC"
+  default     = null
 }
 
 variable "vpc_acc_name" {
   description = "Name of accepter's VPC"
-  default     = ""
+  default     = null
+}
+
+variable "vpc_acc_id" {
+  description = "ID of accepter's VPC"
+  default     = null
 }
 
 variable "req_subnet_cidr" {

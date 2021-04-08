@@ -10,12 +10,14 @@ provider "flexibleengine" {
 # Get IDs of VPC
 data "flexibleengine_vpc_v1" "vpc_req" {
   # Get the ID of VPC requester
+  count    = var.vpc_req_name != null ? 1 : 0
   provider = flexibleengine.requester
   name     = var.vpc_req_name
 }
 
 data "flexibleengine_vpc_v1" "vpc_acc" {
   # Get the ID of VPC peer
+  count    = var.vpc_acc_name != null ? 1 : 0
   provider = flexibleengine.accepter
   name     = var.vpc_acc_name
 }
@@ -24,8 +26,8 @@ data "flexibleengine_vpc_v1" "vpc_acc" {
 resource "flexibleengine_vpc_peering_connection_v2" "peering" {
   provider       = flexibleengine.requester
   name           = var.peer_name
-  vpc_id         = data.flexibleengine_vpc_v1.vpc_req.id
-  peer_vpc_id    = data.flexibleengine_vpc_v1.vpc_acc.id
+  vpc_id         = var.vpc_req_id != null ? var.vpc_req_id : data.flexibleengine_vpc_v1.vpc_req[0].id
+  peer_vpc_id    = var.vpc_acc_id != null ? var.vpc_acc_id : data.flexibleengine_vpc_v1.vpc_acc[0].id
   peer_tenant_id = var.tenant_acc_id
 }
 
@@ -45,7 +47,7 @@ resource "flexibleengine_vpc_route_v2" "req_vpc_route" {
   type        = "peering"
   nexthop     = flexibleengine_vpc_peering_connection_v2.peering.id
   destination = element(var.acc_subnet_cidr, count.index)
-  vpc_id      = data.flexibleengine_vpc_v1.vpc_req.id
+  vpc_id      = var.vpc_req_id != null ? var.vpc_req_id : data.flexibleengine_vpc_v1.vpc_req[0].id
   depends_on = [
     flexibleengine_vpc_peering_connection_v2.peering,
     flexibleengine_vpc_peering_connection_accepter_v2.peer,
@@ -59,7 +61,7 @@ resource "flexibleengine_vpc_route_v2" "acc_vpc_route" {
   type        = "peering"
   nexthop     = flexibleengine_vpc_peering_connection_v2.peering.id
   destination = element(var.req_subnet_cidr, count.index)
-  vpc_id      = data.flexibleengine_vpc_v1.vpc_acc.id
+  vpc_id      = var.vpc_acc_id != null ? var.vpc_acc_id : data.flexibleengine_vpc_v1.vpc_acc[0].id
   depends_on = [
     flexibleengine_vpc_peering_connection_v2.peering,
     flexibleengine_vpc_peering_connection_accepter_v2.peer,
